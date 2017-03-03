@@ -1,8 +1,3 @@
-#
-# To use this Makefile with your version of magic-cli, change the value of
-# PREFIX to whatever you have renamed the main command to.
-#
-
 PREFIX = commando
 
 #

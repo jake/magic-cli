@@ -1,0 +1,56 @@
+#!/usr/bin/env sh
+# Sorts a directory of frame sequences to be five-space, zero-based, zero-padded, and sequential.
+# @param <Directory> - Input directory containing .png frame sequences. Will only be sorted if required.
+
+DIR=$1
+SHOT_ID=$(basename $DIR)
+
+pushd () {
+    command pushd "$@" > /dev/null
+}
+
+popd () {
+    command popd "$@" > /dev/null
+}
+
+bold=$(tput bold)
+normal=$(tput sgr0)
+
+if [ -z $DIR ]; then
+    echo "! ${bold}Directory is required.${normal}"
+    exit 1
+fi
+
+if [ ! -d $DIR ]; then
+    echo "! ${bold}${DIR} directory does not exist.${normal}"
+    exit 1
+fi
+
+COUNT=$(($(ls -1 ${DIR}/*.png | wc -l)))
+
+if (( $COUNT == 0 )); then
+    echo "! ${bold}${DIR} directory does not contain any *.png files.${normal}"
+    exit 1
+fi
+
+LAST=$(printf "%05d" $(expr $COUNT - 1))
+LAST_MATCH="${DIR}/${SHOT_ID}_${LAST}.png"
+LAST_FILE=$(ls -1 ${DIR}/*.png | tail -1)
+
+if [[ -f "${DIR}/${SHOT_ID}_00000.png" && $LAST_MATCH = $LAST_FILE ]]; then
+    echo "~~~${bold}${DIR} directory does not need sorting.${normal}"
+    exit
+fi
+
+echo "\t${bold}Sorting ${DIR}...${normal}"
+
+pushd $DIR
+
+a=0
+for i in *.png; do
+    new=$(printf -- "${SHOT_ID}_%05d.png" "$a")
+    mv -- "$i" "$new"
+    let a=a+1
+done
+
+popd

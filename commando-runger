@@ -1,36 +1,28 @@
 #!/usr/bin/env sh
-
-#Takes a large batch of frame sequences and renders them to lossless video files.
-# @param <ID> - Shot ID. Must exist within ./input directory and be presorted.
-# @param <FPS> - FPS to use for render. Defaults to 30.
-# @param <qscale> - Quality scale. Defaults to 13. 0 is best, 32 which is worst. Sweetspot is 9 - 13
-# @param <size> - Frame size. Defaults to 1920x1080.
-
-ID=${1%/}
-FPS=${2:-30}
-QSCALE=${3:-13}
-SIZE=${4:-1920x1080}
+# Takes a batch of frame sequences and renders them to individual lossless video file. Will use ./input and ./output folders from current working path.
 
 bold=$(tput bold)
 normal=$(tput sgr0)
 
-if [ -z "${ID}" ]; then
-    echo "! ${bold}Shot ID is required.${normal}"
+if [ ! -d "input" ]; then
+    echo "! ${bold}./input directory does not exist.${normal}"
     exit 1
 fi
 
-if [ ! -d "input/${ID}" ]; then
-    echo "! ${bold}input/${ID} dir does not exist.${normal}"
-    exit 1
-fi
+mkdir -p output
 
-if [ ! -f "input/${ID}/${ID}_00000.png" ]; then
-    echo "! ${bold}${ID}/${ID}_00000.png file does not exist.${normal}"
-    exit 1
-fi
+for d in input/*; do
+    INPUT=${d#input/}
 
-COUNT=$(($(ls -1 input/${ID} | wc -l)))
+    if [ -f "output/${INPUT}.mov" ]; then
+        echo "~~~${bold}Skipping ${INPUT}, output/${INPUT}.mov already exists...${normal}"
+        continue
+    fi
 
-echo "\t${bold}Rendering ${ID} (${COUNT} frames)...${normal}"
+    commando runger-sort "input/${INPUT}"
 
-ffmpeg -loglevel panic -stats -y -probesize 5000000 -f image2 -r ${FPS} -i input/${ID}/${ID}_%05d.png -c:v prores_ks -profile:v 3 -qscale:v ${QSCALE} -vendor ap10 -pix_fmt yuv422p10le -s ${SIZE} -r ${FPS} -force_fps output/${ID}.mov
+    # don't call runger-render if runger-sort failed
+    if [ $? -eq 0 ]; then
+        commando runger-render $INPUT
+    fi
+done

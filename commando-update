@@ -8,7 +8,7 @@ require 'shellwords'
 # Update this to point to wherever you're hosting your tools. If you're not hosting with git,
 # change the `fetch_latest_code!` function below to suit your scenario.
 #
-SOURCE_REPO = 'git@github.com:slackhq/magic-cli.git'
+SOURCE_REPO = 'git@github.com:yothinko/commando.git'
 
 #
 # This message is shown if updating the tools fails for any reason; you can customize this to tell

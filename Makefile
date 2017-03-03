@@ -3,7 +3,7 @@
 # PREFIX to whatever you have renamed the main command to.
 #
 
-PREFIX = magic-cli
+PREFIX = commando
 
 #
 # Where to install the tools

@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
-
-require './commando-helpers.rb'
+require_relative 'commando-helpers.rb'
 
 program :description, 'Takes a directory of frame sequences and renders to a lossless video.'
 program :version, '1.0.0'

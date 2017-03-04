@@ -15,6 +15,7 @@ command :run do |c|
   c.description = 'WIP'
   c.option '--edl EDL', String, 'EDL file'
   c.option '--sheet CSV', String, 'Old Google Docs sheet'
+  c.option '--frameio CSV', String, 'Frame.io comments export'
   c.option '--fps FPS', Integer, 'FPS to process EDL file with'
   c.action do |args, options|
     options.default \
@@ -25,6 +26,7 @@ command :run do |c|
 
     options.edl = File.expand_path(options.edl)
     options.sheet = File.expand_path(options.sheet)
+    options.frameio = File.expand_path(options.frameio) if options.frameio && File.exists?(options.frameio)
 
     dump_options(options)
 
@@ -99,6 +101,38 @@ command :run do |c|
 
       output[id][:description] = shot['Description']
       output[id][:notes] = shot['Notes']
+    end
+
+    if options.frameio
+      frameio = File.open(options.frameio, "rb")
+      comments = frameio.read.split("\n\n")
+
+      comments.each_with_index do |comment, i|
+        next if i == 0
+        next if comment.start_with? "\t"
+
+        meta,msg = comment.split("\n")
+        meta = meta.split(' - ', 2)[1]
+        
+        tc,msg = msg.split(' - ', 2)
+
+        frame = Timecode.parse(tc, fps = options.fps).total.to_i
+
+        output.each do |id,shot|
+          next if shot.nil? || shot[:start_frame].nil? || shot[:end_frame].nil?
+
+          next if shot[:start_frame] > frame
+          next if shot[:end_frame] < frame
+
+          msg = "#{meta}\n#{msg}"
+
+          if shot[:notes]
+            shot[:notes] = "#{shot[:notes]}\n\n====\n\n#{msg}"
+          else
+            shot[:notes] = msg
+          end
+        end
+      end
     end
 
     CSV.open("data.csv", "wb") do |csv|

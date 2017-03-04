@@ -1,28 +1,53 @@
-#!/usr/bin/env sh
-# Takes a batch of frame sequences and renders them to individual lossless video file. Will use ./input and ./output folders from current working path.
+#!/usr/bin/env ruby
+require './commando-helpers.rb'
 
-bold=$(tput bold)
-normal=$(tput sgr0)
+program :description, 'Takes a batch of frame sequences and renders them to individual lossless video file'
+program :version, '1.0.0'
 
-if [ ! -d "input" ]; then
-    echo "! ${bold}./input directory does not exist.${normal}"
-    exit 1
-fi
+heading program :name
 
-mkdir -p output
+command :loop do |c|
+  c.option '--input DIR', String, 'Input directory'
+  c.option '--output DIR', String, 'Destination directory'
+  c.description = 'Sorts sequences in <input> and renders them to <output>'
+  c.action do |args, options|
+    options.default \
+      input: "./input",
+      output: "./output"
+    
+    options.input = File.expand_path(options.input)
+    options.output = File.expand_path(options.output)
 
-for d in input/*; do
-    INPUT=${d#input/}
+    puts "Input directory: #{options.input}"
+    puts "Output directory: #{options.output}"
+    puts
 
-    if [ -f "output/${INPUT}.mov" ]; then
-        echo "~~~${bold}Skipping ${INPUT}, output/${INPUT}.mov already exists...${normal}"
-        continue
-    fi
+    if ! File.directory?(options.input)
+      crash("Input directory '#{options.input}' does not exist")
+    end
 
-    commando runger-sort "input/${INPUT}"
+    if ! File.directory?(options.output)
+      warning "Output directory '#{options.output}' does not exist, creating it..."
+      Dir.mkdir(options.output)
+    end
 
-    # don't call runger-render if runger-sort failed
-    if [ $? -eq 0 ]; then
-        commando runger-render $INPUT
-    fi
-done
+    Dir.glob("#{options.input}/*") do |shot|
+      shot_id = shot.strip.split('/').last
+
+      if File.exists?("#{options.output}/#{shot_id}.mov")
+        puts "Skipping shot #{shot_id}, #{options.output}/#{shot_id}.mov already exists."
+        next
+      end
+
+      system "commando runger-sort #{Shellwords.escape(shot)}"
+
+      if $?.exitstatus == 0
+        system "commando runger-render #{Shellwords.escape(shot)}"
+      else
+        warning "runger-sort commando failed on #{shot}"
+      end
+    end
+  end
+end
+default_command :loop
+

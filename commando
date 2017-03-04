@@ -22,7 +22,7 @@ class MagicCli
             subcommands.push({
                 :name => [subcommand, parameters].join(" "),
                 :description => description
-            })
+            }) unless subcommand == "helpers.rb"
         end
         max_subcommand_name_length = subcommands.map{ |subcommand| subcommand[:name].length }.max
 

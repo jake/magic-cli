@@ -37,7 +37,7 @@ command :render do |c|
       crash "Output directory '#{options.output}' does not exist"
     end
 
-    frames = `ls -1 #{Shellwords.escape(options.input)}/*.png 2>/dev/null`.lines
+    frames = Dir.glob("#{options.input}/*.png")
 
     if frames.length == 0
       crash "#{options.input} does not contain any *.png files"

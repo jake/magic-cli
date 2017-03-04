@@ -44,7 +44,7 @@ Dir.mktmpdir  do |dir|
     Dir.chdir dir do
 
         fetch_latest_code!
-        `make install_quiet`
+        `make install`
 
         if $?.exitstatus == 0
             timestamp, version = get_tools_version_info

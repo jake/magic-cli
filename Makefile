@@ -23,7 +23,10 @@ announce_installation:
 install_deps:
 	@echo "Installing dependencies..."
 	gem install commander
+	gem install terminal-table
 	gem install pastel
+	gem install cocaine
+	-brew install ffmpeg
 
 install_tools:
 	@install -m 755 -p $(FILES) ${DESTINATION_DIR}

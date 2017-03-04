@@ -7,9 +7,9 @@ program :version, '1.0.0'
 heading program :name
 
 command :loop do |c|
-  c.option '--input DIR', String, 'Input directory'
-  c.option '--output DIR', String, 'Destination directory'
   c.description = 'Sorts sequences in <input> and renders them to <output>'
+  c.option '--input DIR', String, 'Input directory'
+  c.option '--output DIR', String, 'Output directory'
   c.action do |args, options|
     options.default \
       input: "./input",
@@ -18,12 +18,10 @@ command :loop do |c|
     options.input = File.expand_path(options.input)
     options.output = File.expand_path(options.output)
 
-    puts "Input directory: #{options.input}"
-    puts "Output directory: #{options.output}"
-    puts
+    dump_options(options)
 
     if ! File.directory?(options.input)
-      crash("Input directory '#{options.input}' does not exist")
+      crash "Input directory '#{options.input}' does not exist"
     end
 
     if ! File.directory?(options.output)

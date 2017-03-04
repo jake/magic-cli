@@ -3,7 +3,9 @@
 require 'shellwords'
 
 require 'commander/import'
+require 'terminal-table'
 require 'pastel'
+require 'cocaine'
 
 program :name, $0.split('commando-').last
 program :version, '0.0.1'
@@ -11,6 +13,13 @@ program :description, 'Commando helper methods. Not called directly.'
 program :help_formatter, :compact
 
 @pastel = Pastel.new
+
+def dump_options(options)
+  rows = []
+  options.__hash__.map { |k, v| rows << ["--#{k}",v] }
+  puts Terminal::Table.new title: "Options", rows: rows
+  puts
+end
 
 def padded(message)
   length = message.length + 4

@@ -42,6 +42,16 @@ command :run do |c|
     edl = EDL::Parser.new(fps=options.fps).parse(File.open(options.edl))
     edl.each do |evt|
       next if evt.track == "AA"
+
+      # use TO NAME for transitions
+      if evt.has_transition?
+        evt.comments.each do |comment|
+          next unless comment.start_with? "* TO CLIP NAME"
+          evt.clip_name = comment.gsub("* TO CLIP NAME:", '').strip
+          break
+        end
+      end
+
       next unless evt.clip_name
 
       clip_id = evt.clip_name.split('.')[0]
@@ -78,7 +88,7 @@ command :run do |c|
 
       unless output[id]
         output[id] = stub.clone
-        # puts "didnt find still for #{id}"
+        puts "still didnt find entry for #{id}"
       end
 
       output[id][:description] = shot['Description']

@@ -34,13 +34,23 @@ class MagicCli
     end
 
     def get_description(filename)
-        # Optionally, subcommands can put a description on the second line of the file
         lines = File.readlines(filename)
-        description = if lines[1] && lines[1].strip.start_with?('#')
-            lines[1].strip.gsub(/^#\s*/, '')
+        description = nil
+
+        if lines[1] && lines[1].strip.start_with?('#')
+            # Subcommands can put a description on the second line of the file
+            description = lines[1].strip.gsub(/^#\s*/, '')
         else
-            nil
+            # Or could be using commander syntax
+            lines.each do |line|
+                if line.strip.start_with?('program :description')
+                    description = line.strip.gsub('program :description,', '')
+                    description = description.strip.chomp("'").reverse.chomp("'").reverse
+                    break
+                end
+            end
         end
+
         return description
     end
 

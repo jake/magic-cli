@@ -30,3 +30,5 @@ install_tools:
 
 uninstall:
 	sh -c "cd ${DESTINATION_DIR} && rm ${PREFIX} && rm ${PREFIX}-*"
+
+reinstall: uninstall install

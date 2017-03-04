@@ -41,6 +41,12 @@ command :run do |c|
 
     edl = EDL::Parser.new(fps=options.fps).parse(File.open(options.edl))
     edl.each do |evt|
+      # if evt.num == "072"
+      #   pp evt
+      #   pp evt.comments
+      #   pp evt.clip_name
+      # end
+
       next if evt.track == "AA"
 
       # use TO NAME for transitions

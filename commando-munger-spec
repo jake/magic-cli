@@ -1,0 +1,108 @@
+#!/usr/bin/env ruby
+require_relative 'commando-helpers.rb'
+
+require 'csv'
+require 'pp'
+require 'edl'
+require 'timecode'
+
+program :description, 'WIP'
+program :version, '1.0.0'
+
+heading program :name
+
+command :run do |c|
+  c.description = 'WIP'
+  c.option '--edl EDL', String, 'EDL file'
+  c.option '--sheet CSV', String, 'Old Google Docs sheet'
+  c.option '--fps FPS', Integer, 'FPS to process EDL file with'
+  c.action do |args, options|
+    options.default \
+      fps: 30
+
+    crash("EDL is required") unless options.edl && File.exists?(options.edl)
+    crash("Sheet is required") unless options.sheet && File.exists?(options.sheet)
+
+    options.edl = File.expand_path(options.edl)
+    options.sheet = File.expand_path(options.sheet)
+
+    dump_options(options)
+
+    output = {}
+    dupes = {}
+    stub = {
+      start_tc: nil,
+      start_frame: nil,
+      end_tc: nil,
+      end_frame: nil,
+      description: nil,
+      notes: nil,
+    }
+
+    edl = EDL::Parser.new(fps=options.fps).parse(File.open(options.edl))
+    edl.each do |evt|
+      next if evt.track == "AA"
+      next unless evt.clip_name
+
+      clip_id = evt.clip_name.split('.')[0]
+
+      if output[clip_id]
+        dupes[clip_id] ||= 1
+        dupes[clip_id] += 1
+
+        clip_id = "#{clip_id}_dupe#{dupes[clip_id]}"
+      end
+
+      output[clip_id] = stub.clone
+
+      output[clip_id][:start_tc] = evt.rec_start_tc.to_s
+      output[clip_id][:start_frame] = evt.rec_start_tc.total
+      output[clip_id][:end_tc] = evt.rec_end_tc.to_s
+      output[clip_id][:end_frame] = evt.rec_end_tc.total
+    end
+
+    sheet = CSV.parse(File.read(options.sheet), headers: true)
+    sheet.each do |row|
+      shot = row.to_hash
+      id = shot['Shot ID']
+
+      # find existing via start_with
+      unless output[id]
+        output.each do |k,v|
+          if k.start_with?(id)
+            id = k
+            break
+          end
+        end
+      end
+
+      unless output[id]
+        output[id] = stub.clone
+        # puts "didnt find still for #{id}"
+      end
+
+      output[id][:description] = shot['Description']
+      output[id][:notes] = shot['Notes']
+    end
+
+    CSV.open("data.csv", "wb") do |csv|
+      csv << ["Shot ID", "Start TC", "Start Frame", "End TC", "End Frame", "Description", "Notes"]
+      
+      output.each do |id, shot|
+        csv << [
+          "#{id}.mov",
+          shot[:start_tc],
+          shot[:start_frame],
+          shot[:end_tc],
+          shot[:end_frame],
+          shot[:description],
+          shot[:notes]
+        ]
+      end
+    end
+
+    # pp output
+  end
+end
+default_command :run
+

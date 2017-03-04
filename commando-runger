@@ -40,7 +40,7 @@ command :loop do |c|
       system "commando runger-sort #{Shellwords.escape(shot)}"
 
       if $?.exitstatus == 0
-        system "commando runger-render #{Shellwords.escape(shot)}"
+        system "commando render-seq --input #{Shellwords.escape(shot)} --output #{Shellwords.escape(options.output)}"
       else
         warning "runger-sort commando failed on #{shot}"
       end

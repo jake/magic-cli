@@ -18,6 +18,20 @@ You can also define any extra parameters that are required for the script with a
 # @param - If you don’t give a parameter name, a default one will be created for you
 ````
 
+If using Ruby, there are some useful helpers available. Description will pulled from `commander` definition.
+
+````ruby
+#!/usr/bin/env ruby
+
+#!/usr/bin/env ruby
+require_relative 'commando-helpers.rb'
+
+program :description, 'Takes a batch of frame sequences and renders them to individual lossless video files'
+program :version, '1.0.0'
+
+heading program :name
+````
+
 ## Installation
 This repository includes a Makefile that will install `commando` and all of its subcommands into `/usr/local/bin`:
 

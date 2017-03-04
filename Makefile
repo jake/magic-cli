@@ -26,6 +26,8 @@ install_deps:
 	gem install terminal-table
 	gem install pastel
 	gem install cocaine
+	gem install edl
+	gem install timecode
 	-brew install ffmpeg
 
 install_tools:

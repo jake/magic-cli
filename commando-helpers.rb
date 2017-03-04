@@ -18,7 +18,7 @@ def padded(message)
 end
 
 def heading(message)
-  puts @pastel.inverse(padded message.upcase)
+  puts @pastel.inverse(padded(message.upcase.gsub('-', ' ')))
   puts
 end
 

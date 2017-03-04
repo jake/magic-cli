@@ -1,0 +1,57 @@
+#!/usr/bin/env ruby
+require_relative 'commando-helpers.rb'
+
+program :description, 'Sorts frames in a directory to be named zero-based, sequential, and five-digit zero-padded'
+program :version, '1.0.0'
+
+heading program :name
+
+def filename(id, prefix='', suffix='')
+  "#{prefix}#{sprintf "%05d", id}#{suffix}"
+end
+
+command :loop do |c|
+  c.description = 'Sorts files in <input> in place'
+  c.option '--input DIR', String, 'Input directory'
+  c.option '--match GLOB', String, 'Glob for filename search'
+  c.action do |args, options|
+    options.default \
+      input: "./input",
+      match: "*.png"
+    
+    options.input = File.expand_path(options.input)
+
+    # TODO: make file pattern an option
+    prefix = "#{File.basename(options.input)}_"
+
+    dump_options(options)
+
+    if ! File.directory?(options.input)
+      crash "Input directory '#{options.input}' does not exist"
+    end
+
+    frames = Dir.glob("#{options.input}/#{options.match}")
+    
+    if frames.length == 0
+      crash "Input directory '#{options.input}' does not contain any '#{options.match}' files"
+    end
+
+    first = File.basename(frames.first).split(".").first
+    first_match = filename(0, prefix)
+    last = File.basename(frames.last).split(".").first
+    last_match = filename(frames.length - 1, prefix)
+
+    if first == first_match && last == last_match
+      success "Input directory #{options.input} does not need sorting"
+      exit
+    end
+
+    i = 0
+    Dir.glob("#{options.input}/#{options.match}") do |frame|
+      File.rename(frame, "#{options.input}/#{filename(i, prefix) + File.extname(frame)}")
+      i += 1
+    end
+  end
+end
+default_command :loop
+

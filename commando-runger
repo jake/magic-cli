@@ -37,7 +37,7 @@ command :loop do |c|
         next
       end
 
-      system "commando runger-sort #{Shellwords.escape(shot)}"
+      system "commando sort-frames --input #{Shellwords.escape(shot)}"
 
       if $?.exitstatus == 0
         system "commando render-seq --input #{Shellwords.escape(shot)} --output #{Shellwords.escape(options.output)}"

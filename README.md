@@ -26,7 +26,7 @@ If using Ruby, there are some useful helpers available. Description will pulled 
 #!/usr/bin/env ruby
 require_relative 'commando-helpers.rb'
 
-program :description, 'Longer Description of the Parameter'
+program :description, 'This line will be shown in the list of commands.'
 program :version, '1.0.0'
 
 heading program :name

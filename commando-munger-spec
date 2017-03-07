@@ -80,7 +80,7 @@ command :run do |c|
     sheet = CSV.parse(File.read(options.sheet), headers: true)
     sheet.each do |row|
       shot = row.to_hash
-      id = shot['Shot ID']
+      id = shot['Shot ID'].split('.')[0]
 
       # find existing via start_with
       unless output[id]

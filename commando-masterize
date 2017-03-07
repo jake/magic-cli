@@ -1,0 +1,53 @@
+#!/usr/bin/env ruby
+require_relative 'commando-helpers.rb'
+
+program :description, 'Takes a batch of AEP working files and copies newest to masters folder'
+program :version, '1.0.0'
+
+heading program :name
+
+command :run do |c|
+  c.description = ''
+  c.option '--input DIR', String, 'Input directory of shots, each containing incremental versions'
+  c.option '--glob GLOB', String, 'Input file search glob'
+  c.option '--output DIR', String, 'Output directory'
+  c.action do |args, options|
+    options.default \
+      input: "./",
+      glob: "*.aep",
+      output: "./masters"
+    
+    options.input = File.expand_path(options.input)
+    options.output = File.expand_path(options.output)
+
+    dump_options(options)
+
+    if ! File.directory?(options.input)
+      crash "Input directory '#{options.input}' does not exist"
+    end
+
+    if ! File.directory?(options.output)
+      crash "Output directory '#{options.output}' does not exist"
+    end
+
+    if Dir.glob("#{options.input}/*/#{options.glob}").length == 0
+      crash "#{options.input} does not contain any sub-directories containing #{options.glob} files"
+    end
+
+    Dir.glob("#{options.input}/*") do |shot|
+      # sort input like "foo.bar, foo-02.bar, foo-03.bar" with suffixless first
+      files = Dir.glob("#{shot}/#{options.glob}").sort_by do |file|
+        filename = File.basename(file, File.extname(file))
+        filename.rpartition('-').last.to_i
+      end
+
+      newest = files.last.clone
+      master = "#{options.output}/#{File.basename(shot.clone)}-master#{File.extname(newest)}"
+
+      puts "Copying #{@pastel.bright_blue newest} to #{@pastel.green master}..."
+      FileUtils.copy_file(newest, master)
+    end
+  end
+end
+default_command :run
+

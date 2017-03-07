@@ -9,8 +9,6 @@ require 'timecode'
 program :description, 'WIP'
 program :version, '1.0.0'
 
-heading program :name
-
 command :run do |c|
   c.description = 'WIP'
   c.option '--edl EDL', String, 'EDL file'
@@ -28,7 +26,7 @@ command :run do |c|
     options.sheet = File.expand_path(options.sheet)
     options.frameio = File.expand_path(options.frameio) if options.frameio && File.exists?(options.frameio)
 
-    dump_options(options)
+    command_header(c, options)
 
     output = {}
     dupes = {}

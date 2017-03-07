@@ -4,7 +4,108 @@ require_relative 'commando-helpers.rb'
 program :description, 'Takes a batch of frame sequences and renders them to individual lossless video files'
 program :version, '1.0.0'
 
-heading program :name
+def filename(id, prefix='', suffix='')
+  "#{prefix}#{sprintf "%05d", id}#{suffix}"
+end
+
+command :sort do |c|
+  c.description = 'Sorts files in <input> in place'
+  c.option '--input DIR', String, 'Input directory'
+  c.option '--match GLOB', String, 'Glob for filename search'
+  c.action do |args, options|
+    options.default \
+      input: "./input",
+      match: "*.png"
+    
+    options.input = File.expand_path(options.input)
+
+    # TODO: make file pattern an option
+    prefix = "#{File.basename(options.input)}_"
+
+    command_header(c, options)
+
+    if ! File.directory?(options.input)
+      crash "Input directory '#{options.input}' does not exist"
+    end
+
+    frames = Dir.glob("#{options.input}/#{options.match}")
+    
+    if frames.length == 0
+      crash "Input directory '#{options.input}' does not contain any '#{options.match}' files"
+    end
+
+    first = File.basename(frames.first).split(".").first
+    first_match = filename(0, prefix)
+    last = File.basename(frames.last).split(".").first
+    last_match = filename(frames.length - 1, prefix)
+
+    if first == first_match && last == last_match
+      success "Input directory #{options.input} does not need sorting"
+      exit
+    end
+
+    i = 0
+    Dir.glob("#{options.input}/#{options.match}") do |frame|
+      File.rename(frame, "#{options.input}/#{filename(i, prefix) + File.extname(frame)}")
+      i += 1
+    end
+  end
+end
+
+command :render do |c|
+  c.description = 'Renders frame sequences in <input> to new file in <output>. Will overwrite existing file with same name.'
+  c.option '--input DIR', String, 'Input directory'
+  c.option '--output DIR', String, 'Output directory'
+  c.option '--outfile FILE', String, 'Output filename, without extension (will be written to output)'
+  c.option '--fps INT', Integer, 'FPS to use for render'
+  c.option '--qscale INT', Integer, 'Quality scale. 0 is best, 32 which is worst. Sweetspot is 9 - 13'
+  c.option '--size STRING', String, 'Frame size'
+  c.action do |args, options|
+    options.default \
+      input: "./input",
+      output: ".",
+      fps: 30,
+      qscale: 13,
+      size: "1920x1080"
+
+    options.input = File.expand_path(options.input)
+    options.output = File.expand_path(options.output)
+
+    options.outfile = "#{options.outfile || File.basename(options.input)}.mov"
+    
+    command_header(c, options)
+
+    if ! File.directory?(options.input)
+      crash "Input directory '#{options.input}' does not exist"
+    end
+
+    if ! File.directory?(options.output)
+      crash "Output directory '#{options.output}' does not exist"
+    end
+
+    frames = Dir.glob("#{options.input}/*.png")
+
+    if frames.length == 0
+      crash "#{options.input} does not contain any *.png files"
+    end
+
+    Cocaine::CommandLine.runner = Cocaine::CommandLine::PopenRunner.new
+    ffmpeg = Cocaine::CommandLine.new("ffmpeg", "-loglevel panic -stats -y -probesize 5000000 -f image2 -r :fps -pattern_type glob -i :input -c:v prores_ks -profile:v 3 -qscale:v :qscale -vendor ap10 -pix_fmt yuv422p10le -s :size -r :fps -force_fps :output")
+    begin
+      notice "Rendering #{options.input}/*.png (#{frames.length} frames)..."
+      ffmpeg.run(
+        input: "#{options.input}/*.png",
+        output: "#{options.output}/#{options.outfile}",
+        fps: options.fps,
+        qscale: options.qscale,
+        size: options.size
+      )
+      success "Rendered to #{options.output}/#{options.outfile}"
+    rescue Cocaine::ExitStatusError => e
+      warning e.message
+    end
+  end
+end
 
 command :loop do |c|
   c.description = 'Sorts sequences in <input> and renders them to <output>'
@@ -18,7 +119,7 @@ command :loop do |c|
     options.input = File.expand_path(options.input)
     options.output = File.expand_path(options.output)
 
-    dump_options(options)
+    command_header(c, options)
 
     if ! File.directory?(options.input)
       crash "Input directory '#{options.input}' does not exist"
@@ -37,12 +138,12 @@ command :loop do |c|
         next
       end
 
-      system "commando sort-frames --input #{Shellwords.escape(shot)}"
+      system "commando", "runger", "sort", "--input", shot
 
       if $?.exitstatus == 0
-        system "commando render-seq --input #{Shellwords.escape(shot)} --output #{Shellwords.escape(options.output)}"
+        system "commando", "runger", "render", "--input", shot, "--output", options.output
       else
-        warning "runger-sort commando failed on #{shot}"
+        warning "`commando runger sort` failed on #{shot}"
       end
     end
   end

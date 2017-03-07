@@ -22,6 +22,11 @@ def dump_options(options)
   puts
 end
 
+def command_header(c, options)
+  heading("#{program(:name)}: #{c.name}")
+  dump_options(options)
+end
+
 def padded(message)
   length = message.length + 4
   " " * length + "\n  #{message}  \n" + " " * length

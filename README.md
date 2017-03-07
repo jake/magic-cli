@@ -30,6 +30,8 @@ program :description, 'This line will be shown in the list of commands.'
 program :version, '1.0.0'
 
 heading program :name
+# Or, within a command
+command_header(c, options)
 ````
 
 ## Installation

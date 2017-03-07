@@ -41,6 +41,11 @@ command :run do |c|
         filename.rpartition('-').last.to_i
       end
 
+      unless files.last
+        puts "Skipping #{@pastel.bright_yellow shot}, does not contain any #{options.glob} files."
+        next
+      end
+
       newest = files.last.clone
       master = "#{options.output}/#{File.basename(shot.clone)}-master#{File.extname(newest)}"
 

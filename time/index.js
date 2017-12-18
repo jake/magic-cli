@@ -1,26 +1,26 @@
-var inquirer = require('inquirer');
-
-var choices = [
-    new inquirer.Separator(),
-    {
-        name: 'New Project',
-        value: '$new'
-    }
-];
+const inquirer = require('inquirer');
+const fetch = require('node-fetch');
+const username = require('username');
 
 var questions = [
     {
         type: 'list',
-        name: 'project',
+        name: 'project_name',
         message: 'Which project?',
-        choices, choices,
+        choices: [
+            new inquirer.Separator(),
+            {
+                name: 'New Project',
+                value: '$new'
+            },
+        ]
     },
     {
         type: 'input',
-        name: 'project',
+        name: 'project_name',
         message: 'Project name:',
         when: function(answers) {
-            return answers.project == '$new';
+            return answers.project_name == '$new';
         }
     },
     {
@@ -37,6 +37,27 @@ var questions = [
     },
 ];
 
-inquirer.prompt(questions).then(answers => {
-    console.log(JSON.stringify(answers, null, '  '));
+const getProjects = async function() {
+    const response = await fetch('https://commando-time.now.sh/projects');
+    return await response.json();
+}
+
+getProjects().then((projects) => {
+    questions[0].choices = projects.concat(questions[0].choices);
+
+    inquirer.prompt(questions).then(answers => {
+        username().then(async (username) => {
+            answers.person = username;
+
+            return await fetch('https://commando-time.now.sh/insert', {
+                method: 'POST',
+                body: JSON.stringify(answers),
+                headers: { 'Content-Type': 'application/json' },
+            })
+            .then(res => res.json())
+            .then(json => console.log(json))
+            .catch(err => console.error(err))
+        })
+
+    });
 });

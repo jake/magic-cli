@@ -18,7 +18,9 @@
   "license": "MIT",
   "devDependencies": {
     "inquirer": "^4.0.1",
-    "micro-dev": "^2.1.1"
+    "micro-dev": "^2.1.1",
+    "node-fetch": "^1.7.3",
+    "username": "^3.0.0"
   },
   "dependencies": {
     "micro": "^9.0.2",

@@ -5,6 +5,10 @@ require('now-env')
 
 const db = mongoist(process.env.MONGO_URL)
 
+function error(message) {
+    return { error: true, message: message }
+}
+
 module.exports = async (req, res) => {
     try {
         switch (req.url) {
@@ -16,15 +20,15 @@ module.exports = async (req, res) => {
                 const body = await json(req);
 
                 if (! body.project_name) {
-                    return send(res, 400, 'no project_name');
+                    return send(res, 400, error('no project_name'));
                 }
 
                 if (! body.amount) {
-                    return send(res, 400, 'no amount');
+                    return send(res, 400, error('no amount'));
                 }
 
                 if (! body.person) {
-                    return send(res, 400, 'no person');
+                    return send(res, 400, error('no person'));
                 }
 
                 return await db.projects.insert({

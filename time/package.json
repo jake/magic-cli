@@ -8,8 +8,10 @@
     "dev": "micro-dev"
   },
   "now": {
+    "alias": "commando-time",
     "env": {
-      "MONGO_URL": "@mongo-url"
+      "NODE_ENV": "production",
+      "MONGO_URL": "@commando-mongo-url"
     }
   },
   "author": "Thinko",

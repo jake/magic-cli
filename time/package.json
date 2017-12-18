@@ -2,13 +2,25 @@
   "name": "commando-time",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "micro",
+    "dev": "micro-dev"
+  },
+  "now": {
+    "env": {
+      "MONGO_URL": "@mongo-url"
+    }
   },
   "author": "Thinko",
   "license": "MIT",
   "devDependencies": {
-    "inquirer": "^4.0.1"
+    "inquirer": "^4.0.1",
+    "micro-dev": "^2.1.1"
+  },
+  "dependencies": {
+    "micro": "^9.0.2",
+    "mongoist": "^1.5.1",
+    "now-env": "^3.0.1"
   }
 }

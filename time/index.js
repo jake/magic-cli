@@ -1,44 +1,29 @@
 var inquirer = require('inquirer');
 
-var output = {};
+var choices = [
+    new inquirer.Separator(),
+    {
+        name: 'New Project',
+        value: '$new'
+    }
+];
 
-function chooseProject() {
-    inquirer.prompt([{
+var questions = [
+    {
         type: 'list',
         name: 'project',
         message: 'Which project?',
-        choices: [
-            'Casey',
-            'OK, Dracula',
-            new inquirer.Separator(),
-            {
-                name: 'New Project',
-                value: '$new'
-            }
-        ]
-    }]).then(answers => {
-        if (answers.project == "$new") {
-            askProject();
-        } else {
-            output.project = answers.project;
-            askAmount();
-        }
-    });
-}
-
-function askProject() {
-    inquirer.prompt([{
+        choices, choices,
+    },
+    {
         type: 'input',
         name: 'project',
-        message: 'Project name',
-    }]).then(answers => {
-        output.project = answers.project;
-        askAmount();
-    });
-}
-
-function askAmount() {
-    inquirer.prompt([{
+        message: 'Project name:',
+        when: function(answers) {
+            return answers.project == '$new';
+        }
+    },
+    {
         type: 'input',
         name: 'amount',
         message: 'How much of today did you spend on it?',
@@ -49,10 +34,9 @@ function askAmount() {
                 return true;
             }
         }
-    }]).then(answers => {
-        output.amount = answers.amount;
-        console.log(output);
-    });
-}
+    },
+];
 
-chooseProject();
+inquirer.prompt(questions).then(answers => {
+    console.log(JSON.stringify(answers, null, '  '));
+});

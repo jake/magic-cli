@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 require_relative 'commando-helpers.rb'
 
-program :description, 'WIP'
+program :description, 'Moves and renames Toon Boom layered output to better support After Effects sorting.'
 program :version, '1.0.0'
 
 def filename(id, prefix='', suffix='')
@@ -16,7 +16,7 @@ LAYERS = {
 }
 
 command :loop do |c|
-  c.description = 'Sorts sequences in <frames> and moves & renames them to <output>'
+  c.description = 'Sorts frames in <frames> and moves & renames them to <output>'
   c.option '--frames DIR', String, 'Input frames (from Toon Boom project directory)'
   c.option '--output DIR', String, 'Output directory'
   c.option '--shot String', String, 'Shot Name (e.g. cats)'

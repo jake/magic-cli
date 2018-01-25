@@ -47,8 +47,13 @@ command :loop do |c|
       Dir.mkdir(options.output)
     end
 
-    Dir.glob("#{options.frames}/*") do |layer_path|
+    Dir.glob("#{options.frames}/*/") do |layer_path|
       layer_name = File.basename layer_path
+
+      unless LAYERS.key? layer_name
+        notice "Skipping invalid layer #{layer_name}"
+        next
+      end
 
       heading "Moving #{layer_name} frames"
       prefix = "#{options.shot}_#{LAYERS[layer_name]}_"
@@ -59,7 +64,11 @@ command :loop do |c|
         i += 1
       end
 
-      success "Moved and renamed #{i + 1} frames"
+      if i > 0
+        success "Moved and renamed #{i} frames"
+      else
+        warning "Didn't find any files in #{layer_path} matching #{options.match}"
+      end
     end
   end
 end

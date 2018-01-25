@@ -1,0 +1,67 @@
+#!/usr/bin/env ruby
+require_relative 'commando-helpers.rb'
+
+program :description, 'WIP'
+program :version, '1.0.0'
+
+def filename(id, prefix='', suffix='')
+  "#{prefix}#{sprintf "%05d", id}#{suffix}"
+end
+
+LAYERS = {
+  'overlay' => 'A-OVERLAY',
+  'line' => 'B-LINE',
+  'color' => 'C-COLOR',
+  'underlay' => 'D-UNDERLAY',
+}
+
+command :loop do |c|
+  c.description = 'Sorts sequences in <frames> and moves & renames them to <output>'
+  c.option '--frames DIR', String, 'Input frames (from Toon Boom project directory)'
+  c.option '--output DIR', String, 'Output directory'
+  c.option '--shot String', String, 'Shot Name (e.g. cats)'
+  c.option '--match GLOB', String, 'Glob for filename search'
+  c.action do |args, options|
+    options.default \
+      frames: "./",
+      output: "./output",
+      shot: "unnamed",
+      match: "*.png"
+
+    options.frames = File.expand_path(options.frames)
+    options.output = File.expand_path(options.output)
+
+    command_header(c, options)
+
+    if ! File.directory?(options.frames)
+      crash "Frames directory '#{options.frames}' does not exist"
+    end
+
+    if File.directory?("#{options.frames}/frames")
+      notice "Using ./frames sub-directory within '#{options.frames}'..."
+      options.frames = "#{options.frames}/frames"
+    end
+
+    if ! File.directory?(options.output)
+      warning "Output directory '#{options.output}' does not exist, creating it..."
+      Dir.mkdir(options.output)
+    end
+
+    Dir.glob("#{options.frames}/*") do |layer_path|
+      layer_name = File.basename layer_path
+
+      heading "Moving #{layer_name} frames"
+      prefix = "#{options.shot}_#{LAYERS[layer_name]}_"
+
+      i = 0
+      Dir.glob("#{layer_path}/#{options.match}") do |frame|
+        File.rename(frame, "#{options.output}/#{filename(i, prefix) + File.extname(frame)}")
+        i += 1
+      end
+
+      success "Moved and renamed #{i + 1} frames"
+    end
+  end
+end
+default_command :loop
+

@@ -39,14 +39,17 @@ end
 
 def notice(message)
   puts @pastel.bright_blue(message)
+  puts
 end
 
 def warning(message)
   puts @pastel.bright_yellow(message)
+  puts
 end
 
 def success(message)
   puts @pastel.green(message)
+  puts
 end
 
 def crash(message="Unrecoverable error")

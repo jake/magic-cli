@@ -1,0 +1,68 @@
+#!/usr/bin/env ruby
+require_relative 'commando-helpers.rb'
+
+require 'yaml'
+
+program :description, 'Renders LightBox projects to a frame sequence.'
+program :version, '1.0.0'
+
+def filename(id, prefix='', suffix='')
+  "#{prefix}#{sprintf "%05d", id}#{suffix}"
+end
+
+command :loop do |c|
+  c.description = 'Sorts bitmaps in <project> and moves & renames them to <output>'
+  c.option '--project DIR', String, 'LightBox project folder (the .lightbox directory)'
+  c.option '--output DIR', String, 'Output directory'
+  c.action do |args, options|
+    options.default \
+      project: "./",
+      output: "./output"
+
+    options.project = File.expand_path(options.project)
+    options.output = File.expand_path(options.output)
+
+    command_header(c, options)
+
+    if ! File.directory?(options.project)
+      crash "Project directory '#{options.project}' does not exist"
+    end
+
+    art_file = File.expand_path "#{options.project}/*.art"
+    art_file = Dir.glob(art_file)[0]
+
+    if ! File.exists?(art_file)
+      crash "Project directory '#{options.project}' does not seem to have an .art file..."
+    end
+
+    art_file = YAML.load_file art_file
+
+    if File.directory?("#{options.project}/bitmaps")
+      notice "Using ./bitmaps sub-directory within '#{options.project}'..."
+      options.project = "#{options.project}/bitmaps"
+    end
+
+    if ! File.directory?(options.output)
+      warning "Output directory '#{options.output}' does not exist, creating it..."
+      Dir.mkdir(options.output)
+    end
+
+    i = 0
+    art_file["frames"].each do |frame|
+      from = "#{options.project}/#{frame['drawingId']}.png"
+      to = "#{options.output}/#{filename frame['frameIndex']}.png"
+
+      next unless File.exists?(from)
+
+      FileUtils.cp from, to
+      i += 1
+    end
+
+    if i > 0
+      success "Moved and renamed #{i} frames to #{options.output}"
+    else
+      warning "Didn't move any files in #{options.project}..."
+    end
+  end
+end
+default_command :loop

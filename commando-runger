@@ -16,7 +16,7 @@ command :sort do |c|
     options.default \
       input: "./input",
       match: "*.png"
-    
+
     options.input = File.expand_path(options.input)
 
     # TODO: make file pattern an option
@@ -29,7 +29,7 @@ command :sort do |c|
     end
 
     frames = Dir.glob("#{options.input}/#{options.match}")
-    
+
     if frames.length == 0
       crash "Input directory '#{options.input}' does not contain any '#{options.match}' files"
     end
@@ -72,7 +72,7 @@ command :render do |c|
     options.output = File.expand_path(options.output)
 
     options.outfile = "#{options.outfile || File.basename(options.input)}.mov"
-    
+
     command_header(c, options)
 
     if ! File.directory?(options.input)
@@ -89,8 +89,8 @@ command :render do |c|
       crash "#{options.input} does not contain any *.png files"
     end
 
-    Cocaine::CommandLine.runner = Cocaine::CommandLine::PopenRunner.new
-    ffmpeg = Cocaine::CommandLine.new("ffmpeg", "-loglevel panic -stats -y -probesize 5000000 -f image2 -r :fps -pattern_type glob -i :input -c:v prores_ks -profile:v 3 -qscale:v :qscale -vendor ap10 -pix_fmt yuv422p10le -s :size -r :fps -force_fps :output")
+    Terrapin::CommandLine.runner = Terrapin::CommandLine::PopenRunner.new
+    ffmpeg = Terrapin::CommandLine.new("ffmpeg", "-loglevel panic -stats -y -probesize 5000000 -f image2 -r :fps -pattern_type glob -i :input -c:v prores_ks -profile:v 3 -qscale:v :qscale -vendor ap10 -pix_fmt yuv422p10le -s :size -r :fps -force_fps :output")
     begin
       notice "Rendering #{options.input}/*.png (#{frames.length} frames)..."
       ffmpeg.run(
@@ -101,7 +101,7 @@ command :render do |c|
         size: options.size
       )
       success "Rendered to #{options.output}/#{options.outfile}"
-    rescue Cocaine::ExitStatusError => e
+    rescue Terrapin::ExitStatusError => e
       warning e.message
     end
   end
@@ -115,7 +115,7 @@ command :loop do |c|
     options.default \
       input: "./input",
       output: "./output"
-    
+
     options.input = File.expand_path(options.input)
     options.output = File.expand_path(options.output)
 
@@ -149,4 +149,3 @@ command :loop do |c|
   end
 end
 default_command :loop
-

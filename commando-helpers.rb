@@ -6,7 +6,7 @@ require 'shellwords'
 require 'commander/import'
 require 'terminal-table'
 require 'pastel'
-require 'cocaine'
+require 'terrapin'
 
 program :name, $0.split('commando-').last
 program :version, '0.0.1'

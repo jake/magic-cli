@@ -73,4 +73,3 @@ command :loop do |c|
   end
 end
 default_command :loop
-

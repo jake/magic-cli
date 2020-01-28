@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+require_relative 'commando-helpers.rb'
+
+require 'mini_magick'
+
+program :description, 'TBD'
+program :version, '1.0.0'
+
+command :loop do |c|
+  c.description = 'TBD'
+  c.option '--texture FILE'
+  c.option '--output DIR', String, 'Output directory'
+  c.option '--width String', String, 'Crop width'
+  c.action do |args, options|
+    options.default \
+      texture: "./texture.png",
+      output: "./output",
+      width: "1200"
+
+    options.texture = File.expand_path(options.texture)
+    options.output = File.expand_path(options.output)
+
+    command_header(c, options)
+
+    if ! File.directory?(options.output)
+      warning "Output directory '#{options.output}' does not exist, creating it..."
+      Dir.mkdir(options.output)
+    end
+
+    texture = MiniMagick::Image.open(options.texture)
+
+    (0..texture.width).each do |i|
+      filename = "#{"%04d" % i}.png"
+
+      image = MiniMagick::Image.open(options.texture)
+      image.roll "-#{i}+0"
+      # image.crop "#{options.width}x#{texture.height}+0+0"
+      image.write("#{options.output}/#{filename}")
+      puts "Wrote #{filename}..."
+    end
+  end
+end
+default_command :loop

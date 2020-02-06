@@ -28,7 +28,7 @@ install_deps:
 	gem install terrapin
 	gem install edl
 	gem install timecode
-	gem install mini_magick
+	gem install chunky_png
 	-brew install ffmpeg
 
 install_tools:

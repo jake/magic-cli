@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 require_relative 'commando-helpers.rb'
 
-require 'mini_magick'
+require 'chunky_png'
 
 program :description, 'TBD'
 program :version, '1.0.0'
@@ -10,15 +10,16 @@ command :loop do |c|
   c.description = 'TBD'
   c.option '--texture FILE'
   c.option '--output DIR', String, 'Output directory'
-  c.option '--width String', String, 'Crop width'
+  c.option '--width String', String, 'Cropped width'
   c.action do |args, options|
     options.default \
       texture: "./texture.png",
       output: "./output",
-      width: "1200"
+      width: "3442"
 
     options.texture = File.expand_path(options.texture)
     options.output = File.expand_path(options.output)
+    options.width = options.width.to_i
 
     command_header(c, options)
 
@@ -27,17 +28,32 @@ command :loop do |c|
       Dir.mkdir(options.output)
     end
 
-    texture = MiniMagick::Image.open(options.texture)
+    texture = ChunkyPNG::Image.from_file(options.texture)
 
     (0..texture.width).each do |i|
-      filename = "#{"%04d" % i}.png"
+      # create full sized out frame
+      out = ChunkyPNG::Image.new(texture.width, texture.height, "ffffff")
 
-      image = MiniMagick::Image.open(options.texture)
-      image.roll "-#{i}+0"
-      # image.crop "#{options.width}x#{texture.height}+0+0"
-      image.write("#{options.output}/#{filename}")
+      # slide head over by i
+      head = texture.crop(i, 0, texture.width - i, texture.height)
+
+      # place at front
+      out.replace!(head, 0, 0)
+
+      # crop tail with remainder i
+      tail = texture.crop(0, 0, i, texture.height)
+
+      # append tail after head
+      out.replace!(tail, texture.width - i, 0)
+
+      # crop out to options.width
+      out.crop!(0, 0, options.width, texture.height)
+
+      # write to disk
+      filename = "#{"%04d" % i}.png"
+      out.save("#{options.output}/#{filename}")
       puts "Wrote #{filename}..."
-    end
+  end
   end
 end
 default_command :loop

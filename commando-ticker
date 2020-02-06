@@ -30,30 +30,51 @@ command :loop do |c|
 
     texture = ChunkyPNG::Image.from_file(options.texture)
 
-    (0..texture.width).each do |i|
-      # create full sized out frame
-      out = ChunkyPNG::Image.new(texture.width, texture.height, "ffffff")
+    # outuput is bigger than input. just tile along x
+    if options.width > texture.width
+      out = ChunkyPNG::Image.new(options.width, texture.height, "ffffff")
 
-      # slide head over by i
-      head = texture.crop(i, 0, texture.width - i, texture.height)
+      repeat, remainder = options.width.divmod(texture.width)
+      repeat.times do |i|
+        # tile on x repeat times
+        out.replace!(texture, i * texture.width, 0)
 
-      # place at front
-      out.replace!(head, 0, 0)
+        # fill any remainder on last
+        if (i + 1) == repeat && remainder > 0
+          texture.crop!(0, 0, remainder, texture.height)
+          out.replace!(texture, options.width - remainder, 0)
+        end  
+      end
 
-      # crop tail with remainder i
-      tail = texture.crop(0, 0, i, texture.height)
-
-      # append tail after head
-      out.replace!(tail, texture.width - i, 0)
-
-      # crop out to options.width
-      out.crop!(0, 0, options.width, texture.height)
-
-      # write to disk
-      filename = "#{"%04d" % i}.png"
+      filename = "0000.png"
       out.save("#{options.output}/#{filename}")
       puts "Wrote #{filename}..."
-  end
+    else
+      (0..texture.width).each do |i|
+        # create full sized out frame
+        out = ChunkyPNG::Image.new(texture.width, texture.height, "ffffff")
+
+        # slide head over by i
+        head = texture.crop(i, 0, texture.width - i, texture.height)
+
+        # place at front
+        out.replace!(head, 0, 0)
+
+        # crop tail with remainder i
+        tail = texture.crop(0, 0, i, texture.height)
+
+        # append tail after head
+        out.replace!(tail, texture.width - i, 0)
+
+        # crop out to options.width
+        out.crop!(0, 0, options.width, texture.height)
+
+        # write to disk
+        filename = "#{"%04d" % i}.png"
+        out.save("#{options.output}/#{filename}")
+        puts "Wrote #{filename}..."
+      end
+    end
   end
 end
 default_command :loop

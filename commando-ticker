@@ -30,7 +30,7 @@ command :loop do |c|
 
     texture = ChunkyPNG::Image.from_file(options.texture)
 
-    # outuput is bigger than input. just tile along x
+    # output is bigger than input. just tile along x
     if options.width > texture.width
       out = ChunkyPNG::Image.new(options.width, texture.height, "ffffff")
 
